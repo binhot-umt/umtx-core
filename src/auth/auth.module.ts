@@ -20,16 +20,7 @@ import { APP_GUARD } from '@nestjs/core';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: AllExceptionsFilter,
-    },
-    UtilsService,
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-  ],
+  providers: [UtilsService, AuthService, LocalStrategy, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

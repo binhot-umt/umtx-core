@@ -9,6 +9,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { APP_FILTER } from '@nestjs/core';
 import { UtilsService } from './utils/utils.service';
+import { WritingModule } from './writing/writing.module';
+import { BullModule } from '@nestjs/bull';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -16,13 +18,18 @@ import { UtilsService } from './utils/utils.service';
     }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
     CacheModule.register(),
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 32768,
+      },
+    }),
     UsersModule,
     AuthModule,
+    WritingModule,
   ],
+
   controllers: [AppController],
-  providers: [
-    AppService,
-    UtilsService,
-  ],
+  providers: [AppService, UtilsService],
 })
 export class AppModule {}
