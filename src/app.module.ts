@@ -11,6 +11,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { UtilsService } from './utils/utils.service';
 import { WritingModule } from './writing/writing.module';
 import { BullModule } from '@nestjs/bull';
+import { TopicsModule } from './topics/topics.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -27,6 +28,7 @@ import { BullModule } from '@nestjs/bull';
     UsersModule,
     AuthModule,
     WritingModule,
+    TopicsModule,
   ],
 
   controllers: [AppController],
