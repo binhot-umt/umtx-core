@@ -4,18 +4,22 @@ import { sha512 } from 'js-sha512';
 
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
+import { OAuth2Client } from 'google-auth-library';
+import { JwtPayload } from 'src/utils/interface';
 /**
  * EXTRA_PASSWORD_STRING la gia tri bien khien mat khau co them extra string cho du lo database
  * cung khong the decrypt ra origin password
-*/
+ */
 export const PRIVATE_ADDON_PASSWORD = process.env.EXTRA_PASSWORD_STRING;
+export const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly UserService: UsersService,
-    private readonly utils: UtilsService
-      ) {}
+    private readonly utils: UtilsService,
+  ) {}
   async vaildLogin(eop: string, password: string) {
     let user = await this.UserService.getByEOP(eop);
     let message;
@@ -51,15 +55,64 @@ export class AuthService {
     const payload_user = user;
     const payload = {
       id: payload_user._id,
-      business_id: payload_user.business_id,
-      token: payload_user.token,
+      token: payload_user.sessionId,
       name: payload_user.name,
+      avatar: payload_user.avatar,
+      email: payload_user.email,
     };
     return {
       statusCode: 200,
-      message: "LOGIN_SUCCESS",
+      message: 'LOGIN_SUCCESS',
       data: {
         access_token: this.jwtService.sign(payload),
+      },
+    };
+  }
+
+  async jwtLogin(token: string) {
+    // const decodedJwtAccessToken =  this.jwtService.decode(token);
+    const client = new OAuth2Client(CLIENT_ID);
+
+    let payload: any = {
+      statusCode: 400,
+      error: true,
+      message: '',
+      data: null,
+      error_code: 'LOGIN_FAILURE',
+    };
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (error) {
+      payload.message = 'PLEASE_TO_LOGIN_TRY_AGAIN';
+      return payload;
+    }
+    // const userid = payload['sub'];
+
+    const user = await this.UserService.createUserFromGoogleJWT(payload);
+
+    const newSessionId = this.utils.randomToken();
+    await this.UserService.update(user._id, {
+      sessionId: newSessionId,
+      lastLogin: new Date(),
+    });
+
+    const mpayload: JwtPayload = {
+      email: user.email,
+      id: user._id,
+      name: user.name,
+      sessionId: newSessionId,
+      avatar: user.avatar,
+      roles: user.roles,
+    };
+    return {
+      statusCode: 200,
+      message: 'LOGIN_SUCCESS',
+      data: {
+        accessToken: this.jwtService.sign(mpayload),
       },
     };
   }

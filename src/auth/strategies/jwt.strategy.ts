@@ -24,21 +24,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    if (payload.token === undefined) {
+    console.log('payload', payload);
+    if (payload.sessionId === undefined) {
       throw new UnauthorizedException('TOKEN_NOT_FOUND');
     }
-    const value = await this.cacheManager.get(payload.token);
+    const value = await this.cacheManager.get(payload.sessionId);
     if (value == null) {
-      const user = await this.UserServices.getUserFromToken(payload.token);
+      const user = await this.UserServices.getUserFromToken(payload.sessionId);
       if (user == null) {
         throw new UnauthorizedException('TOKEN_EXPIRED');
       }
       if (payload.id === user._id) {
-        this.cacheManager.set(payload.token, user);
+        this.cacheManager.set(payload.sessionId, user);
         return {
           id: payload.id,
           business_id: payload.business_id,
-          token: payload.token,
+          token: payload.sessionId,
           name: payload.name,
         };
       } else {
@@ -49,7 +50,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: payload.id,
       business_id: payload.business_id,
-      token: payload.token,
+      token: payload.sessionId,
       name: payload.name,
     };
   }

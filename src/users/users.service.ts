@@ -73,7 +73,7 @@ export class UsersService {
       } else {
         return {
           statusCode: 200,
-          message: "UPDATED"
+          message: 'UPDATED',
         };
       }
     }
@@ -97,10 +97,31 @@ export class UsersService {
       { _id: id },
       { token: newToken, lastLogin: new Date().toISOString() },
     ).exec();
-    
+
     return {
       statusCode: 200,
-      data: updateUserResult
+      data: updateUserResult,
     };
+  }
+
+  async findOneByEmail(email: string): Promise<User> {
+    const user = await this.UserModel.findOne({ email: email });
+    if (!user) throw new NotFoundException('user_not_existed');
+    return user;
+  }
+  async isExistUserByEmail(email: string): Promise<boolean> {
+    return (await this.UserModel.find({ email: email }).exec()).length > 0;
+  }
+
+  async createUserFromGoogleJWT(profile: any): Promise<User> {
+    if (await this.isExistUserByEmail(profile.email)) {
+      return await this.findOneByEmail(profile.email);
+    } else {
+      return await this.UserModel.create({
+        name: `${profile.name}`,
+        email: profile.email,
+        avatar: profile.picture,
+      });
+    }
   }
 }
