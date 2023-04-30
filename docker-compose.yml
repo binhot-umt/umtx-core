@@ -1,0 +1,32 @@
+version: '3.1'
+services:
+  nginx:
+    image: 'binhotvn/nginx-proxy-manager-with-pagespeed:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80' # Public HTTP Port
+      - '443:443' # Public HTTPS Port
+      - '81:81' # Admin Web Port
+    networks:
+      - public
+    volumes:
+      - ./nginx/data:/data
+      - ./nginx/letsencrypt:/etc/letsencrypt
+  image_handler:
+    image: 'leadthechange/ltc_image_handler:latest'
+    restart: always
+    networks:
+      - public
+    env_file:
+      - ./penv/.prod.env
+  prod-backend:
+    image: 'binhotvn/yet-backend:latest'
+    restart: always
+    networks:
+      - public
+    env_file:
+      - ./penv/.prod.env
+
+networks:
+  public:
+    driver: bridge
