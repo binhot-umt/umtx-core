@@ -26,6 +26,29 @@ services:
       - public
     env_file:
       - ./penv/.prod.env
+  jenkins:
+    image: 'binhotvn/jenkins:latest'
+    restart: unless-stopped
+    privileged: true
+    user: root
+    volumes:
+      - ./jenkins/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - public
+  portainer-ce:
+    ports:
+        - '8000:8000'
+        - '9443:9443'
+    container_name: portainer
+    restart: always
+    volumes:
+        - '/var/run/docker.sock:/var/run/docker.sock'
+        - './portainer_data:/data'
+    image: 'portainer/portainer-ce:latest'
+    networks:
+      - public
+
 
 networks:
   public:
