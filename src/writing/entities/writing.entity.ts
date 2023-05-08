@@ -15,10 +15,9 @@ import {
 } from 'class-validator';
 import { v4 as uuidv4 } from 'uuid';
 import { WritingStatus } from './writing.status.enum';
-export class Writing {
-  @Prop({ required: true, default: uuidv4 })
-  _id: string;
+import { BaseSchema } from 'src/utils/base.schema';
 
+export class Writing extends BaseSchema {
   @Prop({ required: true })
   user_id: string;
 
@@ -27,6 +26,12 @@ export class Writing {
 
   @Prop({ required: true })
   topic_id: string;
+
+  @Prop({ required: true })
+  topic_content: string;
+
+  @Prop()
+  topic_img: string;
 
   @Prop({ required: true })
   status: WritingStatus;
@@ -45,4 +50,10 @@ export class Writing {
     },
   })
   last_modified: Date;
+  @Prop()
+  feedback: [any];
+  @Prop()
+  grammarMistakes: [string];
+  @Prop()
+  vocabularyMistakes: [string];
 }

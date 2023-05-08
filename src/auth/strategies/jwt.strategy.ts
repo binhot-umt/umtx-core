@@ -30,7 +30,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     const value = await this.cacheManager.get(payload.sessionId);
     if (value == null) {
-      const user = await this.UserServices.getUserFromToken(payload.sessionId);
+      const user = await this.UserServices.getUfromToken(payload.sessionId);
+      console.log('user', user, payload.sessionId);
       if (user == null) {
         throw new UnauthorizedException('TOKEN_EXPIRED');
       }
@@ -38,8 +39,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         this.cacheManager.set(payload.sessionId, user);
         return {
           id: payload.id,
-          business_id: payload.business_id,
-          token: payload.sessionId,
+
+          email: payload.email,
+          sessionId: payload.sessionId,
           name: payload.name,
         };
       } else {

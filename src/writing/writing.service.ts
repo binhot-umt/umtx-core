@@ -6,6 +6,7 @@ import { WritingDocument } from './schemas/writing.schema';
 import { Model } from 'mongoose';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { StartWritingDto } from './dto/start-writing.dto';
 
 @Injectable()
 export class WritingService {
@@ -22,6 +23,11 @@ export class WritingService {
     }
   }
 
+  async startWriting(start: StartWritingDto, user: any) {
+    console.log('start, user', start, user);
+    const a = await this.writingModel.findOne({});
+    return a;
+  }
   findAll(user_id: string) {
     return this.writingModel.find({ user_id: user_id }).exec();
   }

@@ -46,10 +46,10 @@ export class User extends BaseSchema {
   @Prop({ required: true, default: ['USERS'] })
   roles: string[];
 
-  @Prop({ select: false })
+  @Prop({ select: true })
   password: string;
 
-  @Prop({ required: true, default: '-', select: false })
+  @Prop({ required: true, default: '-', select: true })
   sessionId: string;
 
   @Prop({ required: true, default: new Date(), select: false })

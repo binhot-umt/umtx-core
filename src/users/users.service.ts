@@ -80,7 +80,7 @@ export class UsersService {
   }
 
   async getUserFromToken(token: string): Promise<User> {
-    return this.UserModel.findOne({ token: token }).exec();
+    return await this.UserModel.findOne({ sessionId: token }).exec();
   }
   async getByEOP(emailOrPhone: string): Promise<User> {
     let userInformation: Promise<User>;
@@ -95,7 +95,7 @@ export class UsersService {
   updateUserToken(id: string, newToken: string): boolean | any {
     const updateUserResult = this.UserModel.updateOne(
       { _id: id },
-      { token: newToken, lastLogin: new Date().toISOString() },
+      { sessionId: newToken, lastLogin: new Date().toISOString() },
     ).exec();
 
     return {

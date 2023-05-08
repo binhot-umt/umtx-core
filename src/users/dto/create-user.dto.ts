@@ -8,7 +8,8 @@ import {
 import { User } from '../entities/user.entity';
 
 export class CreateUserDto extends User {
-
+  @IsNotEmpty({ message: 'NAME_SHOULD_NOT_EMPTY' })
+  name: string;
   @IsEmail({ message: 'Email _!IsEmail' })
   @IsNotEmpty({ message: 'Email _!IsNotEmpty' })
   email: string;
@@ -19,5 +20,4 @@ export class CreateUserDto extends User {
 
   @IsNotEmpty({ message: 'Mật khẩu _!IsNotEmpty' })
   password: string;
-  
 }

@@ -22,6 +22,7 @@ export class AuthService {
   ) {}
   async vaildLogin(eop: string, password: string) {
     let user = await this.UserService.getByEOP(eop);
+    console.log('user', user);
     let message;
     if (user && user.password === sha512(password + PRIVATE_ADDON_PASSWORD)) {
       /**
@@ -38,7 +39,7 @@ export class AuthService {
 
       const { ...result } = user;
 
-      result['_doc'].token = newToken;
+      result['_doc'].sessionId = newToken;
 
       return { data: result['_doc'], message: 'SUCCESS' };
     } else {
@@ -48,14 +49,14 @@ export class AuthService {
 
     return { data: null, message: message };
   }
-  getUserFromToken(token: string) {
+  getUfromToken(token: string) {
     return this.UserService.getUserFromToken(token);
   }
   async login(user: any) {
     const payload_user = user;
     const payload = {
       id: payload_user._id,
-      token: payload_user.sessionId,
+      sessionId: payload_user.sessionId,
       name: payload_user.name,
       avatar: payload_user.avatar,
       email: payload_user.email,

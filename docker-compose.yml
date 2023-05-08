@@ -19,13 +19,13 @@ services:
       - public
     env_file:
       - ./penv/.prod.env
-  # prod-backend:
-  #   image: 'binhotvn/yet-backend:latest'
-  #   restart: always
-  #   networks:
-  #     - public
-  #   env_file:
-  #     - ./penv/.prod.env
+  prod-backend:
+    image: 'binhotvn/yet-backend:latest'
+    restart: always
+    networks:
+      - public
+    env_file:
+      - ./penv/.prod.env
   jenkins:
     image: 'binhotvn/jenkins:latest'
     restart: unless-stopped
