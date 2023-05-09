@@ -73,15 +73,23 @@ export class Writing extends Ownerful {
     },
   })
   endTime: Date;
-  @Prop()
+
+  @Prop({
+    required: true,
+    default: () => {
+      return new Date(0);
+    },
+  })
+  submittedTime: Date;
+  @Prop({ required: true, default: [] })
   structure: [any];
-  @Prop()
+  @Prop({ required: true, default: '-' })
   grammarFeedback: string;
-  @Prop()
-  structureFeedbacks: string;
+  @Prop({ required: true, default: '-' })
+  structureFeedback: string;
 
   @Prop()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => IELTSScore)
   ieltsScore: IELTSScore;
 }

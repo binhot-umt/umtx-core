@@ -1,34 +1,18 @@
-import { BadRequestException, Injectable, LoggerService } from '@nestjs/common';
-import axios, { AxiosRequestConfig } from 'axios';
-const MAPI_HOST = process.env.MAPI_HOST;
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { HttpService } from '../http.service';
+import { AxiosRequestConfig } from 'axios';
 @Injectable()
 export class MapiService {
-  // private readonly logger: LoggerService;
-  // constructor() {}
+  private readonly loggerService = new Logger('MAPI_SERVICE');
+  private readonly httpService = new HttpService();
+  private readonly MAPI_HOST = process.env.MAPI_HOST;
+  constructor() {}
   async getScore(content: string): Promise<any> {
     const data = JSON.stringify({
       essay: content,
     });
 
-    const config: AxiosRequestConfig = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: MAPI_HOST + '/api/v1/score/ielts',
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      data: data,
-    };
-
-    axios
-      .request(config)
-      .then((response) => {
-        return response;
-      })
-      .catch((error) => {
-        throw new BadRequestException('CAN_NOT_GET_SCORE');
-      });
+    return this.httpService.post(this.MAPI_HOST + '/api/v1/score/ielts', data);
   }
 
   async getFeedbackGrammar(content: string): Promise<any> {
@@ -36,51 +20,20 @@ export class MapiService {
       essay: content,
     });
 
-    const config: AxiosRequestConfig = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: MAPI_HOST + '/api/v1/feedback/grammar',
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      data: data,
-    };
-
-    axios
-      .request(config)
-      .then((response) => {
-        return response;
-      })
-      .catch((error) => {
-        throw new BadRequestException('CAN_NOT_GET_FEEDBACK_GRAMMAR');
-      });
+    return this.httpService.post(
+      this.MAPI_HOST + '/api/v1/feedback/grammar',
+      data,
+    );
   }
 
   async getFeedbackStructure(content: string): Promise<any> {
     const data = JSON.stringify({
       essay: content,
     });
-
-    const config: AxiosRequestConfig = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: MAPI_HOST + '/api/v1/feedback/structure',
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      data: data,
-    };
-
-    axios
-      .request(config)
-      .then((response) => {
-        return response;
-      })
-      .catch((error) => {
-        throw new BadRequestException('CAN_NOT_GET_FEEDBACK_STRUCTURE');
-      });
+    return this.httpService.post(
+      this.MAPI_HOST + '/api/v1/feedback/structure',
+      data,
+    );
   }
 
   async getStructureAnalyst(content: string): Promise<any> {
@@ -88,24 +41,6 @@ export class MapiService {
       essay: content,
     });
 
-    const config: AxiosRequestConfig = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: MAPI_HOST + '/api/v1/structure',
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      data: data,
-    };
-
-    axios
-      .request(config)
-      .then((response) => {
-        return response;
-      })
-      .catch((error) => {
-        throw new BadRequestException('CAN_NOT_GET_STRUCTURE_ANALYST');
-      });
+    return this.httpService.post(this.MAPI_HOST + '/api/v1/structure', data);
   }
 }

@@ -10,6 +10,7 @@ export class Log {
   message: string;
   @Prop({ required: true, default: '-' })
   code: string;
+
   @Prop({ required: true, default: () => new Date() })
   time: Date;
 }
@@ -41,8 +42,13 @@ export abstract class BaseSchema {
 
   @Prop({
     required: true,
-    default: { type: 'INFO', message: 'Created', code: 'CREATED' },
+    default: {
+      type: 'INFO',
+      message: 'Created',
+      code: 'CREATED',
+      time: new Date(),
+    },
   })
-  @ValidateNested()
+  @ValidateNested({ each: true })
   log: [Log];
 }

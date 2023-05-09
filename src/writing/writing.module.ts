@@ -8,6 +8,7 @@ import { UserSchema } from 'src/users/schemas/user.schema';
 import { UtilsService } from 'src/utils/utils.service';
 import { WritingQueueService } from './writing.queue';
 import { MApiModule } from 'src/utils/master-api/mapi.module';
+import { WritingProcessor } from './writing.processor';
 // import { MapiService } from 'src/utils/master-api/mapi.service';
 
 @Module({
@@ -19,12 +20,19 @@ import { MApiModule } from 'src/utils/master-api/mapi.module';
       { name: 'Users', schema: UserSchema, collection: 'users' },
     ]),
     BullModule.registerQueue({
-      name: 'writing',
+      name: 'Writing',
     }),
+    // WritingHandle,
     // LoggerService,
     MApiModule,
   ],
   controllers: [WritingController],
-  providers: [WritingService, UtilsService, WritingQueueService],
+  providers: [
+    WritingService,
+    UtilsService,
+    WritingQueueService,
+    WritingProcessor,
+  ],
+  exports: [WritingService, WritingQueueService],
 })
 export class WritingModule {}

@@ -17,6 +17,7 @@ import { Penalty, TaskMinutes } from 'src/utils/hard.config';
 import { NotFoundError } from 'rxjs';
 import { UtilsService } from 'src/utils/utils.service';
 import { ok } from 'assert';
+import { WritingQueueService } from './writing.queue';
 
 @Injectable()
 export class WritingService {
@@ -24,7 +25,7 @@ export class WritingService {
     private readonly utilsService: UtilsService,
     @InjectModel('Writing')
     private readonly writingModel: Model<WritingDocument>,
-    @InjectQueue('writing') private writingQueue: Queue,
+    private writingQueue: WritingQueueService,
   ) {}
   async updateResult(
     post_id: string,
@@ -50,7 +51,12 @@ export class WritingService {
   async setFailed(id): Promise<void> {
     await this.writingModel.updateOne(
       { _id: id },
-      { status: WritingStatus.Failed },
+      {
+        status: WritingStatus.Failed,
+        $push: {
+          log: { type: 'ERROR', message: 'Job Failed', code: 'JOB_FAILED' },
+        },
+      },
     );
   }
   async create(createWritingDto: CreateWritingDto) {
@@ -133,6 +139,18 @@ export class WritingService {
       });
     }
   }
+  async setProcessingStatus(id: string) {
+    const setProcessing = await this.writingModel.updateOne(
+      { _id: id },
+      {
+        status: WritingStatus.Processing,
+        $push: {
+          log: { type: 'INFO', message: 'Processing', code: 'PROCESSING' },
+        },
+      },
+    );
+    return setProcessing.modifiedCount > 0;
+  }
   async submittedWriting(id: string, user_id: string, content: string) {
     const getPost = await this.writingModel
       .findOne({ _id: id, owner: user_id })
@@ -142,6 +160,7 @@ export class WritingService {
       throw new NotFoundException('WRITING_POST_NOT_FOUND');
     }
     if (getPost.status == WritingStatus.Writing) {
+      // if (1) {
       if (
         Number(getPost.endTime) - Number(new Date()) >
         this.utilsService.buildToTimer(Penalty)
@@ -154,6 +173,7 @@ export class WritingService {
           {
             content: content,
             status: WritingStatus.Submitted,
+            $currentDate: { lastModified: true, submittedTime: true },
             $push: {
               log: {
                 type: 'INFO',
@@ -163,7 +183,10 @@ export class WritingService {
             },
           },
         );
-        await this.writingQueue.add(id);
+        if (updateContentAndSubmit.modifiedCount == 0) {
+          throw new BadGatewayException('CAN_NOT_SUBMIT_WRITING');
+        }
+        await this.writingQueue.addJob(id);
         return {
           statusCode: 200,
           message: 'SUCCESS',
@@ -187,9 +210,5 @@ export class WritingService {
 
   findOne(id: string, user_id: string) {
     return this.writingModel.findOne({ _id: id, owner: user_id }).exec();
-  }
-
-  update(id: string, updateWritingDto: UpdateWritingDto) {
-    return this.writingModel.updateOne({ _id: id }, updateWritingDto).exec();
   }
 }
