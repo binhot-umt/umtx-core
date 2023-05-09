@@ -1,19 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsDate,
-  IsEmail,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsPhoneNumber,
-  IsUUID,
-  Length,
-  ValidateNested,
-} from 'class-validator';
-import { v4 as uuidv4 } from 'uuid';
+import { ValidateNested } from 'class-validator';
 import { WritingMode, WritingStatus, writingTask } from './writing.status.enum';
 // import { BaseSchema } from 'src/utils/base.schema';
 import { Ownerful } from 'src/utils/owner.schema';

@@ -1,6 +1,7 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import * as Bull from 'bull';
+import { type } from 'os';
 
 @Injectable()
 export class WritingQueueService {
@@ -14,5 +15,18 @@ export class WritingQueueService {
     await this.queue.add('evalute_handle', {
       id: data,
     });
+  }
+  async removeAllJob() {
+    await this.queue.empty();
+  }
+  async getAllJobId() {
+    const jobs = await this.queue.getJobs(['active', 'waiting', 'completed']);
+
+    // console.log(`Total jobs in queue: ${jobs.length}`);
+    const total = [];
+    jobs.forEach((job: Bull.Job) => {
+      total.push(job.data.id);
+    });
+    return total;
   }
 }

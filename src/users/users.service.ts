@@ -79,6 +79,9 @@ export class UsersService {
     }
   }
 
+  async getUserFromId(token: string): Promise<User> {
+    return await this.UserModel.findOne({ _id: token }).exec();
+  }
   async getUserFromToken(token: string): Promise<User> {
     return await this.UserModel.findOne({ sessionId: token }).exec();
   }

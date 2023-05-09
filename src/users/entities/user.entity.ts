@@ -21,7 +21,7 @@ export enum UserStatus {
   UNCONFIRMED = 'Unconfirmed',
   DELETED = 'Deleted',
 }
-@Schema()
+@Schema({ versionKey: false })
 export class User extends BaseSchema {
   @Prop({ type: String, required: true })
   name: string;
@@ -29,7 +29,7 @@ export class User extends BaseSchema {
   @Prop({ required: true })
   email: string;
 
-  @Prop({ type: String })
+  @Prop({ type: String, required: true, default: 0 })
   phone: string;
 
   @Prop({ type: String })

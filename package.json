@@ -32,6 +32,7 @@
     "@nestjs/mongoose": "^9.0.2",
     "@nestjs/passport": "^8.1.0",
     "@nestjs/platform-express": "^8.0.0",
+    "@nestjs/schedule": "^2.2.1",
     "axois": "^0.0.1-security",
     "bull": "^4.10.4",
     "bull-board": "^2.1.3",

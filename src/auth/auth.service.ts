@@ -22,7 +22,6 @@ export class AuthService {
   ) {}
   async vaildLogin(eop: string, password: string) {
     let user = await this.UserService.getByEOP(eop);
-    console.log('user', user);
     let message;
     if (user && user.password === sha512(password + PRIVATE_ADDON_PASSWORD)) {
       /**

@@ -55,7 +55,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: payload.email,
 
       phone: payload.phone,
-      token: payload.sessionId,
+      sessionId: payload.sessionId,
       name: payload.name,
     };
   }

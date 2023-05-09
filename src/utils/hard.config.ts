@@ -4,3 +4,5 @@ export const TaskMinutes = {
 };
 
 export const Penalty = [0, 1, 0];
+
+export const LateInStart = [0, 0, 30];

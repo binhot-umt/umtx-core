@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs';
 import { sha512 } from 'js-sha512';
 import { User } from 'src/users/entities/user.entity';
@@ -18,7 +18,7 @@ export const PUBLIC_KEY_FUNCTION = NodeRSA(
 export const PRIVATE_KEY_FUNCTION = NodeRSA(fs.readFileSync(KEY_DIR + 'key'));
 PRIVATE_KEY = PRIVATE_KEY_FUNCTION.exportKey('private');
 PUBLIC_KEY = PUBLIC_KEY_FUNCTION.exportKey('public');
-export const UNSAFE_ENTITIES_USER = ['token', 'password'];
+export const UNSAFE_ENTITIES_USER = ['sessionId', 'password'];
 
 @Injectable()
 export class UtilsService {
@@ -29,12 +29,19 @@ export class UtilsService {
     ).substring(0, 10);
   }
 
-  async returnSafeUser(user: User): Promise<User> {
-    UNSAFE_ENTITIES_USER.forEach((entities) => {
-      user[entities] = undefined;
-      delete user[entities];
-    });
-    return user;
+  async returnSafeUser(user): Promise<any> {
+    // console.log('user', user);
+    if (!user) {
+      throw new NotFoundException('USER_NOT_FOUND');
+    }
+    const FINAL = {};
+    for (const [key, value] of Object.entries(user._doc)) {
+      if (!UNSAFE_ENTITIES_USER.includes(key)) {
+        FINAL[key] = value;
+      }
+    }
+    // console.log('FINAL', FINAL);
+    return { statusCode: 200, data: FINAL };
   }
   buildToTimer(timer): number {
     return timer[0] * 60 * 60 * 1000 + timer[1] * 60 * 1000 + timer[2] * 1000;

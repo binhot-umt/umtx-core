@@ -1,6 +1,6 @@
 import { MapiService } from 'src/utils/master-api/mapi.service';
 import { WritingService } from './writing.service';
-import { InjectQueue, Process, Processor } from '@nestjs/bull';
+import { Process, Processor } from '@nestjs/bull';
 import * as Bull from 'bull';
 import { Logger } from '@nestjs/common';
 
@@ -14,6 +14,11 @@ export class WritingProcessor {
   ) {}
   @Process('evalute_handle')
   async readOperationJob(job: Bull.Job<any>) {
+    const isSystemUpdate = await this.mapi.testSystem();
+    if (!isSystemUpdate) {
+      await this.writingService.setFailed(job.data.id);
+      return;
+    }
     this.LoggerService.log('Process job: ' + job.data.id);
     const getWriting = await this.writingService.adminGetOneId(job.data.id);
 

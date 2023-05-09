@@ -5,18 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateWritingDto } from './dto/create-writing.dto';
-import { UpdateWritingDto } from './dto/update-writing.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { WritingDocument } from './schemas/writing.schema';
 import { Model } from 'mongoose';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { StartWritingDto } from './dto/start-writing.dto';
 import { WritingStatus } from './entities/writing.status.enum';
-import { Penalty, TaskMinutes } from 'src/utils/hard.config';
-import { NotFoundError } from 'rxjs';
+import { LateInStart, Penalty, TaskMinutes } from 'src/utils/hard.config';
 import { UtilsService } from 'src/utils/utils.service';
-import { ok } from 'assert';
 import { WritingQueueService } from './writing.queue';
 
 @Injectable()
@@ -43,7 +38,7 @@ export class WritingService {
         structureFeedback: getFeedbackStructure,
 
         structure: structureAnalyst,
-        status: WritingStatus.Finish,
+        status: WritingStatus.Finished,
       },
     );
     return updateResult.modifiedCount > 0;
@@ -59,36 +54,109 @@ export class WritingService {
       },
     );
   }
+  async findAllProcessing() {
+    return await this.writingModel
+      .find({ status: WritingStatus.Processing })
+      .exec();
+  }
+  async findAllTimeOut() {
+    await this.writingModel
+      .updateMany(
+        {
+          endTime: new Date(0),
+          createdAt: {
+            $lte: new Date(
+              new Date().getTime() -
+                this.utilsService.buildToTimer(LateInStart),
+            ),
+          },
+          status: {
+            $nin: [
+              WritingStatus.Finished,
+              WritingStatus.Processing,
+              WritingStatus.Failed,
+
+              WritingStatus.Submitted,
+            ],
+          },
+        },
+        { status: WritingStatus.Failed },
+      )
+      .exec();
+    return await this.writingModel
+      .updateMany(
+        {
+          endTime: { $ne: new Date(0), $lte: new Date() },
+          status: {
+            $nin: [
+              WritingStatus.Finished,
+              WritingStatus.Processing,
+              WritingStatus.Failed,
+
+              WritingStatus.Submitted,
+            ],
+          },
+        },
+        { status: WritingStatus.Failed },
+      )
+      .exec();
+  }
   async create(createWritingDto: CreateWritingDto) {
     const newWritingPost = new this.writingModel(createWritingDto);
     const newWritingPostResult = await newWritingPost.save();
-    if (newWritingPost) {
+    if (newWritingPostResult) {
       return { statusCode: 200, message: 'SUCCESS', _id: newWritingPost.id };
     }
   }
 
   async startWriting(start: StartWritingDto, user: any) {
-    // console.log('start, user', start, user);
-    // const writingTask = new this.writingModel({});
-    const writingPost = {
-      owner: user.id,
-      ...start,
-    };
-    // console.log('writingPost', writingPost);
-    const newWritingPost = new this.writingModel(writingPost);
-    const newWritingPostResult = await newWritingPost.save();
-    if (newWritingPost) {
-      const UpdateStatus = await this.writingModel
-        .updateOne({ _id: newWritingPost.id }, { status: WritingStatus.Draft })
-        .exec();
+    const pendingWriting = await this.writingModel
+      .find({
+        owner: user.id,
+        status: { $nin: [WritingStatus.Failed, WritingStatus.New] },
+      })
+      .exec();
+    if (pendingWriting.length > 0) {
       return {
         statusCode: 200,
-        message: 'SUCCESS',
-        _id: newWritingPost.id,
-        data: newWritingPostResult,
+        message: 'PENDING_WRITING_POST',
+        _id: pendingWriting[0]._id,
+        data: pendingWriting[0],
       };
     } else {
-      throw new BadGatewayException('CAN_NOT_CREATE_WRITING_POST');
+      const writingPost = {
+        owner: user.id,
+        ...start,
+      };
+
+      const newWritingPost = new this.writingModel(writingPost);
+      const newWritingPostResult = await newWritingPost.save();
+      if (newWritingPost) {
+        await this.writingModel
+          .updateOne(
+            { _id: newWritingPost.id },
+            {
+              status: WritingStatus.Draft,
+              $currentDate: { lastModified: true },
+              $push: {
+                log: {
+                  type: 'INFO',
+                  message: 'Create success. Change to Draft',
+                  code: 'DRAFTED',
+                },
+              },
+            },
+          )
+          .exec();
+        return {
+          statusCode: 200,
+          message: 'SUCCESS',
+          _id: newWritingPost.id,
+          data: newWritingPostResult,
+        };
+      } else {
+        throw new BadGatewayException('CAN_NOT_CREATE_WRITING_POST');
+      }
     }
   }
   async startTimerOnWrite(id: string, user_id: string) {
@@ -162,8 +230,10 @@ export class WritingService {
     if (getPost.status == WritingStatus.Writing) {
       // if (1) {
       if (
-        Number(getPost.endTime) - Number(new Date()) >
-        this.utilsService.buildToTimer(Penalty)
+        Number(getPost.endTime) +
+          Number(this.utilsService.buildToTimer(Penalty)) -
+          Number(new Date()) >
+        0
       ) {
         const updateContentAndSubmit = await this.writingModel.updateOne(
           {
@@ -206,6 +276,37 @@ export class WritingService {
   }
   findAll(user_id: string) {
     return this.writingModel.find({ owner: user_id }).exec();
+  }
+
+  async buildDataTable(user_id: string) {
+    const listAllPost = await this.writingModel
+      .find({ owner: user_id })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    // Convert Date to dd/mm/yyyy string fron element.submittedTime
+
+    const finalDatabase = [];
+    let count = 0;
+    listAllPost.forEach((element) => {
+      // Convert Date to dd/mm/yyyy string fron element.submittedTime
+      count += 1;
+      const ymd = element.submittedTime.toISOString().split('T')[0];
+      const dmy = ymd.split('-').reverse().join('/');
+      finalDatabase.push([
+        count,
+        element.submittedTime.toISOString() == new Date(0).toISOString()
+          ? 'Not Submitted'
+          : dmy,
+        element.mode,
+        element.status,
+        element.ieltsScore?.overall !== undefined
+          ? element.ieltsScore.overall
+          : 'N/A',
+        element._id,
+      ]);
+    });
+    return finalDatabase;
   }
 
   findOne(id: string, user_id: string) {

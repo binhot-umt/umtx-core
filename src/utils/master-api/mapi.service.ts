@@ -43,4 +43,8 @@ export class MapiService {
 
     return this.httpService.post(this.MAPI_HOST + '/api/v1/structure', data);
   }
+
+  async testSystem(): Promise<boolean> {
+    return (await this.httpService.get(this.MAPI_HOST))['Hello'] == 'World';
+  }
 }

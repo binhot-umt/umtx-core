@@ -4,14 +4,11 @@ import {
   Post,
   Body,
   Param,
-  Patch,
   Request,
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { WritingService } from './writing.service';
-import { CreateWritingDto } from './dto/create-writing.dto';
-import { UpdateWritingDto } from './dto/update-writing.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { StartWritingDto } from './dto/start-writing.dto';
 
@@ -42,9 +39,14 @@ export class WritingController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('datatable')
+  getDatatable(@Request() req) {
+    return this.writingService.buildDataTable(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Request() req) {
-    // console.log('req', req);
     return this.writingService.findAll(req.user.id);
   }
 

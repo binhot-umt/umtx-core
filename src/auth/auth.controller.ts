@@ -35,7 +35,7 @@ export class AuthController {
   @Get('info')
   async info(@Request() req) {
     return this.utils.returnSafeUser(
-      await this.usersService.getUserFromToken(req.user.token),
+      await this.usersService.getUserFromToken(req.user.sessionId),
     );
   }
 }

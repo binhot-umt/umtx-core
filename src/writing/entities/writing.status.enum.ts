@@ -4,12 +4,13 @@ export enum WritingStatus {
   'Writing' = 'WRITING',
   'Submitted' = 'SUBMITTED',
   'Processing' = 'PROCESSING',
-  'Finish' = 'FINISH',
+  'Finished' = 'FINISHED',
   'Failed' = 'FAILED',
 }
 
 export enum WritingMode {
   'Topic' = 'TOPIC',
+  'Random' = 'RANDOM',
   'Freemode' = 'FREEMODE',
 }
 

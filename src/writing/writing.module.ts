@@ -1,4 +1,4 @@
-import { LoggerService, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { WritingService } from './writing.service';
 import { WritingController } from './writing.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -9,6 +9,7 @@ import { UtilsService } from 'src/utils/utils.service';
 import { WritingQueueService } from './writing.queue';
 import { MApiModule } from 'src/utils/master-api/mapi.module';
 import { WritingProcessor } from './writing.processor';
+import { WritingCronService } from './writing.cron';
 // import { MapiService } from 'src/utils/master-api/mapi.service';
 
 @Module({
@@ -32,6 +33,7 @@ import { WritingProcessor } from './writing.processor';
     UtilsService,
     WritingQueueService,
     WritingProcessor,
+    WritingCronService,
   ],
   exports: [WritingService, WritingQueueService],
 })
