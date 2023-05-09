@@ -12,6 +12,8 @@ import { UtilsService } from './utils/utils.service';
 import { WritingModule } from './writing/writing.module';
 import { BullModule } from '@nestjs/bull';
 import { TopicsModule } from './topics/topics.module';
+import { MApiModule } from './utils/master-api/mapi.module';
+import { MapiService } from './utils/master-api/mapi.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,12 +23,14 @@ import { TopicsModule } from './topics/topics.module';
     CacheModule.register(),
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
-        port: 32768,
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
       },
     }),
     UsersModule,
     AuthModule,
+    MApiModule,
+
     WritingModule,
     TopicsModule,
   ],

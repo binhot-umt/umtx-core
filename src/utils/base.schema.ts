@@ -1,7 +1,19 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { Prop } from '@nestjs/mongoose';
+import { Prop, Schema } from '@nestjs/mongoose';
+import { ValidateNested } from 'class-validator';
 
+export class Log {
+  @Prop({ required: true, default: 'INFO' })
+  type: string;
+  @Prop({ required: true, default: '-' })
+  message: string;
+  @Prop({ required: true, default: '-' })
+  code: string;
+  @Prop({ required: true, default: () => new Date() })
+  time: Date;
+}
+@Schema()
 export abstract class BaseSchema {
   @Prop({
     index: true,
@@ -26,4 +38,11 @@ export abstract class BaseSchema {
     select: false,
   })
   updatedAt: Date;
+
+  @Prop({
+    required: true,
+    default: { type: 'INFO', message: 'Created', code: 'CREATED' },
+  })
+  @ValidateNested()
+  log: [Log];
 }

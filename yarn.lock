@@ -1471,6 +1471,11 @@ axios@0.24.0:
   dependencies:
     follow-redirects "^1.14.4"
 
+axois@^0.0.1-security:
+  version "0.0.1-security"
+  resolved "https://registry.yarnpkg.com/axois/-/axois-0.0.1-security.tgz#372b4659c6a059ec4a6c6786f81fbf6cb5f892d2"
+  integrity sha512-8Nui4fwwyxHfjAfpDlg3Jt66EJA4i1D1eJch3D+wM/Oe+qhpyp7yfiszko/O5/adYu20wc37RG9/Eg8QIJHcvA==
+
 babel-jest@^27.4.6:
   version "27.4.6"
   resolved "https://registry.npmjs.org/babel-jest/-/babel-jest-27.4.6.tgz"

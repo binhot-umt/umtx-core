@@ -36,4 +36,7 @@ export class UtilsService {
     });
     return user;
   }
+  buildToTimer(timer): number {
+    return timer[0] * 60 * 60 * 1000 + timer[1] * 60 * 1000 + timer[2] * 1000;
+  }
 }
