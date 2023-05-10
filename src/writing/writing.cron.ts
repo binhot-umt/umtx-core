@@ -5,6 +5,7 @@ import { WritingStatus } from './entities/writing.status.enum';
 import { WritingQueueService } from './writing.queue';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { MapiService } from 'src/utils/master-api/mapi.service';
 
 @Injectable()
 export class WritingCronService {
@@ -12,6 +13,7 @@ export class WritingCronService {
   constructor(
     private readonly writingService: WritingService,
     private writingQueue: WritingQueueService,
+    private mapi: MapiService,
     @InjectQueue('Writing') private readonly myQueue: Queue,
   ) {}
   @Cron(CronExpression.EVERY_MINUTE)
@@ -49,5 +51,13 @@ export class WritingCronService {
     this.logger.warn('Remove all jobs');
     await this.writingQueue.removeAllJob();
     // find all empty queue\
+  }
+  @Cron(CronExpression.EVERY_MINUTE)
+  async checkSystemUp() {
+    try {
+      const systemInfo = await this.mapi.testSystem();
+    } catch (e) {
+      this.logger.error('System is down');
+    }
   }
 }

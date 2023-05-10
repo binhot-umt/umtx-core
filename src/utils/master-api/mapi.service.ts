@@ -45,6 +45,10 @@ export class MapiService {
   }
 
   async testSystem(): Promise<boolean> {
-    return (await this.httpService.get(this.MAPI_HOST))['Hello'] == 'World';
+    return (
+      (await this.httpService.get(this.MAPI_HOST), {}, { setTimeout: 900 })[
+        'Hello'
+      ] == 'World'
+    );
   }
 }

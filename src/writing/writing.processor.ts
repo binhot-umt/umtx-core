@@ -14,8 +14,10 @@ export class WritingProcessor {
   ) {}
   @Process('evalute_handle')
   async readOperationJob(job: Bull.Job<any>) {
-    const isSystemUpdate = await this.mapi.testSystem();
-    if (!isSystemUpdate) {
+    try {
+      const systemInfo = await this.mapi.testSystem();
+    } catch (e) {
+      this.LoggerService.error("Can't connect to system");
       await this.writingService.setFailed(job.data.id);
       return;
     }

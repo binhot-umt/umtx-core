@@ -56,7 +56,9 @@ export class WritingService {
   }
   async findAllProcessing() {
     return await this.writingModel
-      .find({ status: WritingStatus.Processing })
+      .find({
+        status: { $in: [WritingStatus.Processing, WritingStatus.Submitted] },
+      })
       .exec();
   }
   async findAllTimeOut() {
@@ -113,7 +115,14 @@ export class WritingService {
     const pendingWriting = await this.writingModel
       .find({
         owner: user.id,
-        status: { $nin: [WritingStatus.Failed, WritingStatus.New] },
+        status: {
+          $nin: [
+            WritingStatus.Failed,
+            WritingStatus.Finished,
+            WritingStatus.Submitted,
+            WritingStatus.Processing,
+          ],
+        },
       })
       .exec();
     if (pendingWriting.length > 0) {
