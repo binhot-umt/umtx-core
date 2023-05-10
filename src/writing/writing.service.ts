@@ -22,6 +22,16 @@ export class WritingService {
     private readonly writingModel: Model<WritingDocument>,
     private writingQueue: WritingQueueService,
   ) {}
+  async saveDraft(id: string, owner_id: string, content) {
+    return (
+      (
+        await this.writingModel.updateOne(
+          { _id: id, owner: owner_id },
+          { content: content },
+        )
+      ).modifiedCount > 0
+    );
+  }
   async updateResult(
     post_id: string,
     ieltsScore,
@@ -43,13 +53,13 @@ export class WritingService {
     );
     return updateResult.modifiedCount > 0;
   }
-  async setFailed(id): Promise<void> {
+  async setFailed(id, reason = 'JOB_FAILED'): Promise<void> {
     await this.writingModel.updateOne(
       { _id: id },
       {
         status: WritingStatus.Failed,
         $push: {
-          log: { type: 'ERROR', message: 'Job Failed', code: 'JOB_FAILED' },
+          log: { type: 'ERROR', message: 'Job Failed', code: reason },
         },
       },
     );
@@ -82,7 +92,16 @@ export class WritingService {
             ],
           },
         },
-        { status: WritingStatus.Failed },
+        {
+          status: WritingStatus.Failed,
+          $push: {
+            log: {
+              type: 'CRON',
+              message: 'Set failed due to timeout',
+              code: 'TIME_OUT_LIMIT',
+            },
+          },
+        },
       )
       .exec();
     return await this.writingModel
@@ -183,9 +202,7 @@ export class WritingService {
             status: WritingStatus.Writing,
             endTime:
               new Date().getTime() +
-              TaskMinutes[getPost.task][0] * 60 * 60 * 1000 +
-              TaskMinutes[getPost.task][1] * 60 * 1000 +
-              TaskMinutes[getPost.task][2] * 1000,
+              this.utilsService.buildToTimer(TaskMinutes[getPost.task]),
             $currentDate: { startTime: true, lastModified: true },
             $push: {
               log: {
@@ -207,13 +224,28 @@ export class WritingService {
         throw new BadGatewayException('CAN_NOT_START_TIMER');
       }
     } else {
-      throw new BadRequestException({
-        statusCode: 400,
+      const time_lefted = Number(getPost.endTime) - Number(new Date());
+      await this.writingModel.updateOne(
+        { _id: id, owner: user_id },
+        {
+          $push: {
+            log: {
+              type: 'INFO',
+              message: 'Restart timer',
+              code: 'RESTORE_TIMER',
+            },
+          },
+        },
+      );
+      return {
+        statusCode: 200,
         message: 'WRITING_POST_ALREADY_STARTED',
         data: {
-          time_lefted: Number(getPost.endTime) - Number(new Date()),
+          time_lefted: time_lefted,
+          length: this.utilsService.buildToTimerArray(time_lefted),
+          content: getPost.content,
         },
-      });
+      };
     }
   }
   async setProcessingStatus(id: string) {
@@ -311,7 +343,7 @@ export class WritingService {
         element.status,
         element.ieltsScore?.overall !== undefined
           ? element.ieltsScore.overall
-          : 'N/A',
+          : '-1',
         element._id,
       ]);
     });

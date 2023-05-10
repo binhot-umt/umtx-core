@@ -46,4 +46,11 @@ export class UtilsService {
   buildToTimer(timer): number {
     return timer[0] * 60 * 60 * 1000 + timer[1] * 60 * 1000 + timer[2] * 1000;
   }
+  buildToTimerArray(timer): number[] {
+    return [
+      Math.floor((timer % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      Math.floor((timer % (1000 * 60 * 60)) / (1000 * 60)),
+      Math.floor((timer % (1000 * 60)) / 1000),
+    ];
+  }
 }

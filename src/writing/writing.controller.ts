@@ -49,6 +49,15 @@ export class WritingController {
   findAll(@Request() req) {
     return this.writingService.findAll(req.user.id);
   }
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/save')
+  saveDraftProcess(
+    @Request() req,
+    @Param('id') id: string,
+    @Body('essay') essay: string,
+  ) {
+    return this.writingService.saveDraft(id, req.user.id, essay);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
