@@ -9,9 +9,8 @@ export enum WritingStatus {
 }
 
 export enum WritingMode {
-  'Topic' = 'TOPIC',
-  'Random' = 'RANDOM',
-  'Freemode' = 'FREEMODE',
+  'Hard' = 'HARD',
+  'Practice' = 'PRACTICE',
 }
 
 export enum writingTask {

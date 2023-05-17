@@ -2,8 +2,8 @@ import { Prop, Schema } from '@nestjs/mongoose';
 import { Type } from 'class-transformer';
 import { ValidateNested } from 'class-validator';
 import { WritingMode, WritingStatus, writingTask } from './writing.status.enum';
-// import { BaseSchema } from 'src/utils/base.schema';
 import { Ownerful } from 'src/utils/owner.schema';
+import { Types } from 'mongoose';
 @Schema({ versionKey: false })
 export class IELTSScore {
   @Prop({ required: true })
@@ -21,13 +21,23 @@ export class IELTSScore {
   @Prop({ required: true })
   overall: number;
 }
-// @Schema()
+export class IELTS_Rewrite {
+  @Prop({ required: true })
+  ideas: string;
+
+  @Prop({ required: true })
+  improvement: string;
+
+  @Prop({ required: true })
+  essay: string;
+}
+
 @Schema({ versionKey: false })
 export class Writing extends Ownerful {
   @Prop({ default: '' })
   content: string;
 
-  @Prop({ required: false })
+  @Prop({ required: false, type: Types.ObjectId, ref: 'Topics' })
   topicId: string;
 
   @Prop({ required: false })
@@ -39,7 +49,7 @@ export class Writing extends Ownerful {
   @Prop({ required: true, default: WritingStatus.New, enum: WritingStatus })
   status: WritingStatus;
 
-  @Prop({ required: true, default: WritingMode.Freemode, enum: WritingMode })
+  @Prop({ required: true, default: WritingMode.Practice, enum: WritingMode })
   mode: WritingMode;
 
   @Prop({ required: true, enum: writingTask })
@@ -68,10 +78,13 @@ export class Writing extends Ownerful {
     },
   })
   submittedTime: Date;
+
   @Prop({ required: true, default: [] })
   structure: [any];
+
   @Prop({ required: true, default: '-' })
   grammarFeedback: string;
+
   @Prop({ required: true, default: '-' })
   structureFeedback: string;
 
@@ -79,4 +92,9 @@ export class Writing extends Ownerful {
   @ValidateNested({ each: true })
   @Type(() => IELTSScore)
   ieltsScore: IELTSScore;
+
+  @Prop()
+  @ValidateNested({ each: true })
+  @Type(() => IELTS_Rewrite)
+  ieltsRewrite: IELTS_Rewrite;
 }

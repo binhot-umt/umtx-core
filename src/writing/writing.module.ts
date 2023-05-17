@@ -10,6 +10,8 @@ import { WritingQueueService } from './writing.queue';
 import { MApiModule } from 'src/utils/master-api/mapi.module';
 import { WritingProcessor } from './writing.processor';
 import { WritingCronService } from './writing.cron';
+import { TopicSchema } from 'src/topics/schemas/topic.schema';
+import { TopicsModule } from 'src/topics/topics.module';
 // import { MapiService } from 'src/utils/master-api/mapi.service';
 
 @Module({
@@ -20,12 +22,17 @@ import { WritingCronService } from './writing.cron';
     MongooseModule.forFeature([
       { name: 'Users', schema: UserSchema, collection: 'users' },
     ]),
+
+    MongooseModule.forFeature([
+      { name: 'Topics', schema: TopicSchema, collection: 'topic' },
+    ]),
     BullModule.registerQueue({
       name: 'Writing',
     }),
     // WritingHandle,
     // LoggerService,
     MApiModule,
+    TopicsModule,
   ],
   controllers: [WritingController],
   providers: [

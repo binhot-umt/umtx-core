@@ -13,6 +13,9 @@ import { WritingStatus } from './entities/writing.status.enum';
 import { LateInStart, Penalty, TaskMinutes } from 'src/utils/hard.config';
 import { UtilsService } from 'src/utils/utils.service';
 import { WritingQueueService } from './writing.queue';
+import { randomInt } from 'crypto';
+import { TopicsService } from 'src/topics/topics.service';
+import { TopicDocument } from 'src/topics/schemas/topic.schema';
 
 @Injectable()
 export class WritingService {
@@ -20,7 +23,10 @@ export class WritingService {
     private readonly utilsService: UtilsService,
     @InjectModel('Writing')
     private readonly writingModel: Model<WritingDocument>,
+    @InjectModel('Topics')
+    private readonly topicModel: Model<TopicDocument>,
     private writingQueue: WritingQueueService,
+    private readonly topicService: TopicsService,
   ) {}
   async saveDraft(id: string, owner_id: string, content) {
     return (
@@ -38,6 +44,7 @@ export class WritingService {
     getfeedbackGrammar,
     getFeedbackStructure,
     structureAnalyst,
+    rewriteAnalyst,
   ) {
     const updateResult = await this.writingModel.updateOne(
       { _id: post_id },
@@ -48,6 +55,7 @@ export class WritingService {
         structureFeedback: getFeedbackStructure,
 
         structure: structureAnalyst,
+        ieltsRewrite: rewriteAnalyst,
         status: WritingStatus.Finished,
       },
     );
@@ -122,13 +130,15 @@ export class WritingService {
       )
       .exec();
   }
-  async create(createWritingDto: CreateWritingDto) {
-    const newWritingPost = new this.writingModel(createWritingDto);
-    const newWritingPostResult = await newWritingPost.save();
-    if (newWritingPostResult) {
-      return { statusCode: 200, message: 'SUCCESS', _id: newWritingPost.id };
-    }
-  }
+  // async create(createWritingDto: CreateWritingDto) {
+
+  //     .exec();
+  //   const newWritingPost = new this.writingModel(createWritingDto);
+  //   const newWritingPostResult = await newWritingPost.save();
+  //   if (newWritingPostResult) {
+  //     return { statusCode: 200, message: 'SUCCESS', _id: newWritingPost.id };
+  //   }
+  // }
 
   async startWriting(start: StartWritingDto, user: any) {
     const pendingWriting = await this.writingModel
@@ -152,9 +162,37 @@ export class WritingService {
         data: pendingWriting[0],
       };
     } else {
+      let selected_collection_type = start.collection_type.split(';');
+
+      if (start.collection_type == 'RANDOM') {
+        selected_collection_type = await this.topicService.getAllCollection();
+      }
+      let selected_topic = start.topic.split(';');
+
+      if (start.topic == 'RANDOM') {
+        selected_topic = await this.topicService.getAllTopic();
+      }
+      let selected_type = start.type.split(';');
+
+      if (start.type == 'RANDOM') {
+        selected_type = await this.topicService.getAllType();
+      }
+      const topic = await this.topicModel.find({
+        collection_type: { $in: selected_collection_type },
+        type: { $in: selected_type },
+        topic: { $in: selected_topic },
+      });
+      if (topic.length == 0) {
+        console.log('CAN_NOT_FIND_TOPIC');
+        throw new BadRequestException('CAN_NOT_FIND_TOPIC');
+      }
+      const topic_selected = topic[randomInt(topic.length)];
+      const topic_id = topic_selected._id;
       const writingPost = {
         owner: user.id,
         ...start,
+        topicId: topic_id,
+        topicContent: topic_selected.task_description,
       };
 
       const newWritingPost = new this.writingModel(writingPost);

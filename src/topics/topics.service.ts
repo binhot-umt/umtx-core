@@ -1,26 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { TopicDocument } from './schemas/topic.schema';
+import { Topic } from './entities/topic.entity';
 
 @Injectable()
 export class TopicsService {
+  constructor(
+    @InjectModel('Topics') private readonly topicModel: Model<TopicDocument>,
+  ) {}
   create(createTopicDto: CreateTopicDto) {
-    return 'This action adds a new topic';
+    const newTopic = new this.topicModel(createTopicDto);
+    const result = newTopic.save();
+    return result;
+  }
+  importAllData(data) {
+    const list = data;
+
+    list.forEach((item) => {
+      item.topic = [...new Set(item.topic.split(';'))];
+      item.task_description = item.task_description
+        .replace('‚Äú', '"')
+        .replace('‚Äò', '"')
+        .replace('‚Äô', '"')
+        .replace('?', ' ? ')
+        .replace('‚Äù', '"')
+        .replace(/\s+/g, ' ')
+        .trim();
+      this.create(item);
+    });
   }
 
   findAll() {
-    return `This action returns all topics`;
+    return this.topicModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} topic`;
+  findOne(id: string) {
+    return this.topicModel.findOne({ _id: id }).exec();
   }
 
-  update(id: number, updateTopicDto: UpdateTopicDto) {
-    return `This action updates a #${id} topic`;
+  getAllCollection() {
+    return this.topicModel.distinct('collection_type').exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} topic`;
+  getAllTopic() {
+    return this.topicModel.distinct('topic').exec();
+  }
+
+  getAllType() {
+    return this.topicModel.distinct('type').exec();
   }
 }

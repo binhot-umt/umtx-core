@@ -32,7 +32,12 @@ export class User extends BaseSchema {
   @Prop({ type: String, required: true, default: 0 })
   phone: string;
 
-  @Prop({ type: String })
+  @Prop({
+    required: true,
+    type: String,
+    default:
+      'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+  })
   avatar: string;
 
   @Prop({

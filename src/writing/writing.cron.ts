@@ -16,7 +16,7 @@ export class WritingCronService {
     private mapi: MapiService,
     @InjectQueue('Writing') private readonly myQueue: Queue,
   ) {}
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async handleCron() {
     const currentJobId = this.writingQueue.getAllJobId();
 

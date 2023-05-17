@@ -49,7 +49,14 @@ services:
     networks:
       - public
 
-
+  redis:
+    container_name: redis
+    restart: always
+    image: 'redis:latest'
+    networks:
+      - public
+    volumes:
+        - './redis-data:/data'
 networks:
   public:
     driver: bridge

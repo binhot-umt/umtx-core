@@ -18,7 +18,7 @@ export class WritingProcessor {
       const systemInfo = await this.mapi.testSystem();
     } catch (e) {
       this.LoggerService.error("Can't connect to system");
-      // await this.writingService.setFailed(job.data.id);
+      await this.writingService.setFailed(job.data.id);
       return;
     }
     this.LoggerService.log('Process job: ' + job.data.id);
@@ -26,17 +26,27 @@ export class WritingProcessor {
 
     await this.writingService.setProcessingStatus(job.data.id);
 
-    const ieltsScore = await this.mapi.getScore(getWriting.content);
+    const ieltsScore = await this.mapi.getScore(
+      getWriting.content,
+      getWriting.topicContent,
+    );
 
     const getfeedbackGrammar = await this.mapi.getFeedbackGrammar(
       getWriting.content,
+      getWriting.topicContent,
     );
     const getFeedbackStructure = await this.mapi.getFeedbackStructure(
       getWriting.content,
+      getWriting.topicContent,
     );
 
     const structureAnalyst = await this.mapi.getStructureAnalyst(
       getWriting.content,
+      getWriting.topicContent,
+    );
+    const rewriteFeedback = await this.mapi.getRewriteFeedback(
+      getWriting.content,
+      getWriting.topicContent,
     );
     const updateResult = await this.writingService.updateResult(
       job.data.id,
@@ -44,6 +54,7 @@ export class WritingProcessor {
       getfeedbackGrammar,
       getFeedbackStructure,
       structureAnalyst,
+      rewriteFeedback,
     );
 
     if (!updateResult) {

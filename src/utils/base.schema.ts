@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Prop, Schema } from '@nestjs/mongoose';
 import { ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class Log {
   @Prop({ required: true, default: 'INFO' })
@@ -50,5 +51,6 @@ export abstract class BaseSchema {
     },
   })
   @ValidateNested({ each: true })
+  @Type(() => Log)
   log: [Log];
 }
