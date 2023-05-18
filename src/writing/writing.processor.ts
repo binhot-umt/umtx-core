@@ -18,7 +18,7 @@ export class WritingProcessor {
       const systemInfo = await this.mapi.testSystem();
     } catch (e) {
       this.LoggerService.error("Can't connect to system");
-      await this.writingService.setFailed(job.data.id);
+      // await this.writingService.setFailed(job.data.id);
       return;
     }
     this.LoggerService.log('Process job: ' + job.data.id);
@@ -48,6 +48,7 @@ export class WritingProcessor {
       getWriting.content,
       getWriting.topicContent,
     );
+
     const updateResult = await this.writingService.updateResult(
       job.data.id,
       ieltsScore,

@@ -57,6 +57,9 @@ services:
       - public
     volumes:
         - './redis-data:/data'
+    
+    env_file:
+      - ./penv/.prod.env
 networks:
   public:
     driver: bridge

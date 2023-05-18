@@ -27,6 +27,7 @@ export class TopicsService {
         .replace('‚Äô', '"')
         .replace('?', ' ? ')
         .replace('‚Äù', '"')
+        .replace('‚Äô', "'")
         .replace(/\s+/g, ' ')
         .trim();
       this.create(item);

@@ -30,6 +30,12 @@ export class IELTS_Rewrite {
 
   @Prop({ required: true })
   essay: string;
+
+  @Prop({ required: true, default: [] })
+  structure: [any];
+
+  @Prop({ required: true, type: IELTSScore })
+  ielts_score: IELTSScore;
 }
 
 @Schema({ versionKey: false })
