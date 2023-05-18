@@ -45,6 +45,7 @@ export class WritingService {
     getFeedbackStructure,
     structureAnalyst,
     rewriteAnalyst,
+    rewriteCompare,
   ) {
     const updateResult = await this.writingModel.updateOne(
       { _id: post_id },
@@ -55,7 +56,7 @@ export class WritingService {
         structureFeedback: getFeedbackStructure,
 
         structure: structureAnalyst,
-        ieltsRewrite: rewriteAnalyst,
+        ieltsRewrite: { ...rewriteAnalyst, compare: rewriteCompare },
         status: WritingStatus.Finished,
       },
     );
@@ -75,7 +76,7 @@ export class WritingService {
   async findAllProcessing() {
     return await this.writingModel
       .find({
-        status: { $in: [WritingStatus.Processing, WritingStatus.Submitted] },
+        status: { $in: [WritingStatus.Submitted] },
       })
       .exec();
   }

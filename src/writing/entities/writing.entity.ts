@@ -36,6 +36,9 @@ export class IELTS_Rewrite {
 
   @Prop({ required: true, type: IELTSScore })
   ielts_score: IELTSScore;
+
+  @Prop({ required: true, default: '-' })
+  compare: string;
 }
 
 @Schema({ versionKey: false })

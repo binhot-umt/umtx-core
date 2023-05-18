@@ -16,7 +16,7 @@ export class WritingCronService {
     private mapi: MapiService,
     @InjectQueue('Writing') private readonly myQueue: Queue,
   ) {}
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async handleCron() {
     const currentJobId = this.writingQueue.getAllJobId();
 
@@ -29,7 +29,6 @@ export class WritingCronService {
 
     listAllPost.forEach(async (element) => {
       const listCurrrentJob = await currentJobId;
-      //   console.log('listCurrrentJob', listCurrrentJob);
       if (!listCurrrentJob.includes(element._id)) {
         this.logger.debug('APPEND JOB: ' + element._id);
 

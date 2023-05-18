@@ -48,7 +48,11 @@ export class WritingProcessor {
       getWriting.content,
       getWriting.topicContent,
     );
-
+    const getResultCompare = await this.mapi.getRewriteCompare(
+      getWriting.content,
+      rewriteFeedback.essay,
+      getWriting.topicContent,
+    );
     const updateResult = await this.writingService.updateResult(
       job.data.id,
       ieltsScore,
@@ -56,6 +60,7 @@ export class WritingProcessor {
       getFeedbackStructure,
       structureAnalyst,
       rewriteFeedback,
+      getResultCompare,
     );
 
     if (!updateResult) {

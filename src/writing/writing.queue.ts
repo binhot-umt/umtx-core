@@ -20,7 +20,12 @@ export class WritingQueueService {
     await this.queue.empty();
   }
   async getAllJobId() {
-    const jobs = await this.queue.getJobs(['active', 'waiting', 'completed']);
+    const jobs = await this.queue.getJobs([
+      'delayed',
+      'active',
+      'waiting',
+      'completed',
+    ]);
 
     // console.log(`Total jobs in queue: ${jobs.length}`);
     const total = [];

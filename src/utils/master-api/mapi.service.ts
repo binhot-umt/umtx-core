@@ -58,6 +58,19 @@ export class MapiService {
 
     return this.httpService.post(this.MAPI_HOST + '/api/v1/rewrite', data);
   }
+  async getRewriteCompare(
+    oldcontent: string,
+    newcontent: string,
+    task: string,
+  ): Promise<any> {
+    const data = JSON.stringify({
+      essay: oldcontent,
+      modified_essay: newcontent,
+      task: task,
+    });
+
+    return this.httpService.post(this.MAPI_HOST + '/api/v1/compare', data);
+  }
   async testSystem(): Promise<boolean> {
     return (
       (await this.httpService.get(this.MAPI_HOST), {}, { setTimeout: 900 })[
