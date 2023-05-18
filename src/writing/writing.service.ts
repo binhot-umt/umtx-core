@@ -392,4 +392,15 @@ export class WritingService {
   findOne(id: string, user_id: string) {
     return this.writingModel.findOne({ _id: id, owner: user_id }).exec();
   }
+
+  async findOnePublic(id: string) {
+    const writing = await this.writingModel
+      .findOne({ _id: id, status: WritingStatus.Finished })
+      .exec();
+    if (writing) {
+      return writing;
+    } else {
+      return;
+    }
+  }
 }

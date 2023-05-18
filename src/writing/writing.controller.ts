@@ -64,4 +64,10 @@ export class WritingController {
   findOne(@Param('id') id: string, @Request() req) {
     return this.writingService.findOne(id, req.user.id);
   }
+
+  // @UseGuards(JwtAuthGuard)
+  @Get('public/:id')
+  findPublic(@Param('id') id: string) {
+    return this.writingService.findOnePublic(id);
+  }
 }
