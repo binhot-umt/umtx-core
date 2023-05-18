@@ -69,7 +69,10 @@ export class MapiService {
       task: task,
     });
 
-    return this.httpService.post(this.MAPI_HOST + '/api/v1/compare', data);
+    return this.httpService.post(
+      this.MAPI_HOST + '/api/v1/feedback/compare',
+      data,
+    );
   }
   async testSystem(): Promise<boolean> {
     return (
