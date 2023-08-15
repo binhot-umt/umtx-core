@@ -7,9 +7,7 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UtilsService } from './utils/utils.service';
-import { WritingModule } from './writing/writing.module';
 import { BullModule } from '@nestjs/bull';
-import { TopicsModule } from './topics/topics.module';
 import { MApiModule } from './utils/master-api/mapi.module';
 import { ScheduleModule } from '@nestjs/schedule';
 @Module({
@@ -31,8 +29,6 @@ import { ScheduleModule } from '@nestjs/schedule';
     MApiModule,
     UsersModule,
     AuthModule,
-    WritingModule,
-    TopicsModule,
   ],
 
   controllers: [AppController],

@@ -11,6 +11,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
+import { SISAuthGuard } from './guards/sis-auth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -19,7 +20,7 @@ export class AuthController {
     private readonly utils: UtilsService,
   ) {}
 
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(SISAuthGuard)
   @Post('login')
   async login(@Request() req) {
     // console.log('req.user', req.user);
