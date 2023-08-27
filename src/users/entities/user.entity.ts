@@ -18,8 +18,13 @@ import { v4 as uuidv4 } from 'uuid';
 export enum UserStatus {
   ACTIVE = 'Active',
   INACTIVE = 'Inactive',
-  UNCONFIRMED = 'Unconfirmed',
-  DELETED = 'Deleted',
+}
+
+export enum SIS_STATUS {
+  ACTIVE = 'Active',
+  WRONG_LOGIN = 'Wrong login',
+  INACTIVE = 'Inactive',
+  HANDLING = 'Handling',
 }
 @Schema({ versionKey: false })
 export class User extends BaseSchema {
@@ -56,6 +61,23 @@ export class User extends BaseSchema {
 
   @Prop({ required: true, default: '-', select: true })
   sessionId: string;
+
+  @Prop({ required: true, default: '-', select: true })
+  sis_token: string;
+  @Prop({ required: true, default: '-', select: true })
+  suid: string;
+  @Prop({ required: true, default: '-', select: true })
+  puid: string;
+
+  @Prop({
+    required: true,
+    enum: SIS_STATUS,
+    default: SIS_STATUS.INACTIVE,
+    select: true,
+  })
+  sis_status: SIS_STATUS;
+  @Prop({ required: true, default: new Date(0), select: true })
+  sis_token_expire: Date;
 
   @Prop({ required: true, default: new Date(), select: false })
   lastLogin: Date;

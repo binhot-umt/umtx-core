@@ -4,8 +4,11 @@ import { sha512 } from 'js-sha512';
 
 import { UsersService } from 'src/users/users.service';
 import { UtilsService } from 'src/utils/utils.service';
+import { encrypt, decrypt } from 'src/utils/encrypt.service';
+
 import { OAuth2Client } from 'google-auth-library';
 import { JwtPayload } from 'src/utils/interface';
+import { MapiService } from 'src/utils/master-api/mapi.service';
 /**
  * EXTRA_PASSWORD_STRING la gia tri bien khien mat khau co them extra string cho du lo database
  * cung khong the decrypt ra origin password
@@ -19,7 +22,32 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly UserService: UsersService,
     private readonly utils: UtilsService,
+    private readonly mapi: MapiService,
   ) {}
+  async sis_crawl_sign(email: string, password: string) {
+    const login_result = await this.mapi.getLogin(email, password);
+    return login_result;
+  }
+  resignToken = async (id) => {
+    // await this.UserService.resignSIS(id);
+  };
+  async checkInCache(email: string, password: string) {
+    const findUser = await this.UserService.findOneByEmail(email);
+
+    if (findUser) {
+      const decrypted_password = await (
+        await decrypt(Buffer.from(findUser.password, 'base64'))
+      ).toString();
+
+      if (decrypted_password === password + '_UMTX') {
+        return { error: false, data: findUser, message: 'SUCCESS' };
+      } else {
+        return { error: true, data: null, message: 'PASSWORD_NOT_CORRECT' };
+      }
+    } else {
+      return { error: true, data: null, message: 'USER_NOT_FOUND' };
+    }
+  }
   async vaildLogin(eop: string, password: string) {
     let user = await this.UserService.getByEOP(eop);
     let message;
@@ -48,18 +76,33 @@ export class AuthService {
 
     return { data: null, message: message };
   }
-  getUfromToken(token: string) {
-    return this.UserService.getUserFromToken(token);
+  async getUfromToken(token: string, puid: string) {
+    if (await this.mapi.isLoggon(token, puid)) {
+      return true;
+    } else {
+      return false;
+    }
   }
   async login(user: any) {
     const payload_user = user;
     const payload = {
-      id: payload_user._id,
-      sessionId: payload_user.sessionId,
-      name: payload_user.name,
-      avatar: payload_user.avatar,
-      email: payload_user.email,
+      token: payload_user.token,
+      uid: payload_user.suid,
+      pid: payload_user.puid,
+
+      username: payload_user.username,
+      password: await encrypt(payload_user.password + '_UMTX'),
+      id: payload_user.puid,
     };
+    try {
+      const user = await this.UserService.createUserFromSIS(payload);
+      // console.log('user', user);
+      payload.id = user._id;
+    } catch (error) {
+      console.log('e', error);
+      console.log('Fail to import');
+    }
+
     return {
       statusCode: 200,
       message: 'LOGIN_SUCCESS',
@@ -68,52 +111,22 @@ export class AuthService {
       },
     };
   }
-
-  async jwtLogin(token: string) {
-    // const decodedJwtAccessToken =  this.jwtService.decode(token);
-    const client = new OAuth2Client(CLIENT_ID);
-
-    let payload: any = {
-      statusCode: 400,
-      error: true,
-      message: '',
-      data: null,
-      error_code: 'LOGIN_FAILURE',
-    };
-    try {
-      const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: CLIENT_ID,
-      });
-      payload = ticket.getPayload();
-    } catch (error) {
-      payload.message = 'PLEASE_TO_LOGIN_TRY_AGAIN';
-      return payload;
-    }
-    // const userid = payload['sub'];
-
-    const user = await this.UserService.createUserFromGoogleJWT(payload);
-
-    const newSessionId = this.utils.randomToken();
-    await this.UserService.update(user._id, {
-      sessionId: newSessionId,
-      lastLogin: new Date(),
-    });
-
-    const mpayload: JwtPayload = {
-      email: user.email,
-      id: user._id,
-      name: user.name,
-      sessionId: newSessionId,
-      avatar: user.avatar,
-      roles: user.roles,
-    };
+  async getMe(email: string) {
+    const user = await this.UserService.getByEOP(email);
+    // console.log('user', user);
     return {
       statusCode: 200,
-      message: 'LOGIN_SUCCESS',
-      data: {
-        accessToken: this.jwtService.sign(mpayload),
-      },
+      message: 'GET_ME_SUCCESS',
+      data: user,
     };
   }
+  // async createUser(newUser: any) {
+  //   if (await this.UserService.getByEOP(newUser.eop)) {
+  //     return {
+  //       statusCode: 400,
+  //       message: 'USER_EXISTED',
+  //       data: null,
+  //     };
+  //   }
+  // }
 }

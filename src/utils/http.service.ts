@@ -6,6 +6,8 @@ export class HttpService {
   private readonly loggerService = new Logger('HTTP_SERVICE');
 
   async get(url: string, config?: AxiosRequestConfig) {
+    config = { headers: { 'Content-Type': 'application/json' } };
+
     const response = await axios.get(url, config);
     this.loggerService.log(
       '[GET] HTTP_SERVICE RETURN  |' + JSON.stringify(response.data) + '|',
@@ -16,17 +18,61 @@ export class HttpService {
     }
     return response.data;
   }
+  async get_token(url, token, config?: AxiosRequestConfig) {
+    config = {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      ...config,
+    };
+    const response = await axios.get(url, config);
 
-  async post(url: string, data?: any, config?: AxiosRequestConfig) {
+    // this.loggerService.log(
+    //   '[POST] HTTP_SERVICE RETURN |' +
+    //     url +
+    //     '||' +
+    //     JSON.stringify(response.data) +
+    //     '|',
+    // );
+    if (!ACCEPT_HTTP_CODE.includes(response.status)) {
+      this.loggerService.error('HTTP_SERVICE POST ERROR');
+    }
+    return response.data;
+  }
+  async post_token(url, token, data?: any, config?: AxiosRequestConfig) {
+    config = {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      ...config,
+    };
     const response = await axios.post(url, data, config);
 
-    this.loggerService.log(
-      '[POST] HTTP_SERVICE RETURN |' +
-        url +
-        '||' +
-        JSON.stringify(response.data) +
-        '|',
-    );
+    // this.loggerService.log(
+    //   '[POST] HTTP_SERVICE RETURN |' +
+    //     url +
+    //     '||' +
+    //     JSON.stringify(response.data) +
+    //     '|',
+    // );
+    if (!ACCEPT_HTTP_CODE.includes(response.status)) {
+      this.loggerService.error('HTTP_SERVICE POST ERROR');
+    }
+    return response.data;
+  }
+  async post(url: string, data?: any, config?: AxiosRequestConfig) {
+    config = { headers: { 'Content-Type': 'application/json' } };
+    const response = await axios.post(url, data, config);
+
+    // this.loggerService.log(
+    //   '[POST] HTTP_SERVICE RETURN |' +
+    //     url +
+    //     '||' +
+    //     JSON.stringify(response.data) +
+    //     '|',
+    // );
     if (!ACCEPT_HTTP_CODE.includes(response.status)) {
       this.loggerService.error('HTTP_SERVICE POST ERROR');
     }
@@ -35,9 +81,9 @@ export class HttpService {
 
   async put(url: string, data?: any, config?: AxiosRequestConfig) {
     const response = await axios.put(url, data, config);
-    this.loggerService.log(
-      '[PUT] HTTP_SERVICE RETURN  |' + JSON.stringify(response.data) + '|',
-    );
+    // this.loggerService.log(
+    //   '[PUT] HTTP_SERVICE RETURN  |' + JSON.stringify(response.data) + '|',
+    // );
 
     if (!ACCEPT_HTTP_CODE.includes(response.status)) {
       this.loggerService.error('HTTP_SERVICE PUT ERROR');
@@ -47,9 +93,9 @@ export class HttpService {
 
   async delete(url: string, config?: AxiosRequestConfig) {
     const response = await axios.delete(url, config);
-    this.loggerService.log(
-      '[DELETE] HTTP_SERVICE RETURN  |' + JSON.stringify(response.data) + '|',
-    );
+    // this.loggerService.log(
+    //   '[DELETE] HTTP_SERVICE RETURN  |' + JSON.stringify(response.data) + '|',
+    // );
 
     if (!ACCEPT_HTTP_CODE.includes(response.status)) {
       this.loggerService.error('HTTP_SERVICE DELETE ERROR');

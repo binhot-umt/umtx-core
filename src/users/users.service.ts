@@ -11,8 +11,11 @@ import { Model } from 'mongoose';
 import { UtilsService } from 'src/utils/utils.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
+import { SIS_STATUS, User } from './entities/user.entity';
 import { UserDocument } from './schemas/user.schema';
+import { MapiService } from 'src/utils/master-api/mapi.service';
+import { JwtService } from '@nestjs/jwt';
+import { decrypt } from 'src/utils/encrypt.service';
 
 const PRIVATE_ADDON_PASSWORD = process.env.EXTRA_PASSWORD_STRING;
 @Injectable()
@@ -24,6 +27,8 @@ export class UsersService {
   constructor(
     @InjectModel('Users') private readonly UserModel: Model<UserDocument>,
     private readonly utils: UtilsService,
+    private readonly mapi: MapiService,
+    private readonly jwtService: JwtService,
   ) {}
 
   /**
@@ -38,16 +43,10 @@ export class UsersService {
 
     return userInformationByEmail !== null || userInformationByPhone !== null;
   }
-  async create(newUserBody: CreateUserDto): Promise<User> {
-    newUserBody.password = sha512(
-      newUserBody.password + PRIVATE_ADDON_PASSWORD,
-    );
-    if (await this.isUserExist(newUserBody)) {
-      throw new BadRequestException('USER_EXIST');
-    }
-    const newUser = await new this.UserModel(newUserBody);
-
-    return this.utils.returnSafeUser(await newUser.save());
+  async findAllProcessing() {
+    return await this.UserModel.find({
+      sis_status: SIS_STATUS.INACTIVE,
+    }).exec();
   }
 
   async findAll() {
@@ -89,7 +88,9 @@ export class UsersService {
     let userInformation: Promise<User>;
 
     if (validator.isEmail(emailOrPhone)) {
-      userInformation = this.UserModel.findOne({ email: emailOrPhone }).exec();
+      userInformation = this.UserModel.findOne({
+        email: emailOrPhone.toLowerCase(),
+      }).exec();
     } else {
       userInformation = this.UserModel.findOne({ phone: emailOrPhone }).exec();
     }
@@ -109,21 +110,56 @@ export class UsersService {
 
   async findOneByEmail(email: string): Promise<User> {
     const user = await this.UserModel.findOne({ email: email });
-    if (!user) throw new NotFoundException('user_not_existed');
     return user;
   }
   async isExistUserByEmail(email: string): Promise<boolean> {
     return (await this.UserModel.find({ email: email }).exec()).length > 0;
   }
+  async resignSIS(suid: string): Promise<User> {
+    const user = await this.UserModel.findOne({ suid: suid });
+    const real_password = (
+      await decrypt(Buffer.from(user.password, 'base64'))
+    ).replace('_UMTX', '');
+    const login = await this.mapi.getLogin(user.email, real_password);
+    if (!login.error) {
+      user.sis_token = login['token'];
+      return await user.save();
+    }
+  }
+  async createUserFromSIS(profile: any): Promise<User> {
+    if (await this.isExistUserByEmail(profile.username)) {
+      const uMe = await this.mapi.getMe(profile.token, profile.uid);
+      const data = this.jwtService.decode(profile.token);
 
-  async createUserFromGoogleJWT(profile: any): Promise<User> {
-    if (await this.isExistUserByEmail(profile.email)) {
-      return await this.findOneByEmail(profile.email);
+      await this.UserModel.updateOne(
+        { email: profile.username },
+        {
+          name: `${uMe.ses_studentname}`,
+          email: uMe.ses_emailaddress,
+          avatar: uMe.new_imagefield,
+          sis_token: profile.token,
+          sis_token_expire: new Date(data['exp']),
+          phone: uMe.new_mobilephone,
+          password: profile.password,
+          suid: profile.uid,
+          puid: profile.pid,
+        },
+      );
+      return await this.UserModel.findOne({ email: profile.username });
     } else {
+      const uMe = await this.mapi.getMe(profile.token, profile.uid);
+      const data = this.jwtService.decode(profile.token);
+      // console.log('data', data);
       return await this.UserModel.create({
-        name: `${profile.name}`,
-        email: profile.email,
-        avatar: profile.picture,
+        name: `${uMe.ses_studentname}`,
+        email: uMe.ses_emailaddress,
+        avatar: uMe.new_imagefield,
+        sis_token: profile.token,
+        sis_token_expire: new Date(data['exp']),
+        phone: uMe.new_mobilephone,
+        password: profile.password,
+        suid: profile.uid,
+        puid: profile.pid,
       });
     }
   }

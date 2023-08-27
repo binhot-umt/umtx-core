@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
@@ -10,6 +10,8 @@ import { UtilsService } from './utils/utils.service';
 import { BullModule } from '@nestjs/bull';
 import { MApiModule } from './utils/master-api/mapi.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CoursesModule } from './courses/courses.module';
+import { CacheModule } from '@nestjs/cache-manager';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +31,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     MApiModule,
     UsersModule,
     AuthModule,
+    CoursesModule,
   ],
 
   controllers: [AppController],

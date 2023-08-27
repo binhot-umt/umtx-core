@@ -28,6 +28,14 @@ export class UtilsService {
       sha512(randomUUID + randomUUID + randomUUID).substring(0, length * 3),
     ).substring(0, 10);
   }
+  today_in_ymd(): string {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
 
   async returnSafeUser(user): Promise<any> {
     // console.log('user', user);
