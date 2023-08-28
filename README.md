@@ -1,12 +1,20 @@
 
 
-# Backend
+# UMT-X Core Back-end
+Đây là repo của back-end viết bằng NestJS xử lý và centerlize các thông tin chính nhằm cung cấp cho các services.
+
+# Requirements
+
+Yêu cầu 
+```
+nodejs > 16.0.0
+nestjs-cli
+@nestjs/* (common, bull)
+redis
+```
 
 
-Yêu cầu NodeJS > 16.0.0
-
-
-# Installation
+# Installation package for developing
 
 ```bash
 $ yarn global add @nestjs/cli
@@ -16,7 +24,7 @@ $ yarn global add @nestjs/cli
 $ yarn install --force
 ```
 
-## Running the app
+## Running the app / dev
 ```bash
 $ yarn build
 ```
@@ -32,9 +40,11 @@ $ yarn start:dev
 $ yarn start:prod
 ```
 
-## Support
+## Build
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```
+docker build . -t {{image_name}}
+```
 
 ## License
 
